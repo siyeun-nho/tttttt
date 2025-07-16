@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>관리자 페이지 | 온라인 마켓</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: #f0f4f8;
+      color: #333;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+    header, nav, section {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    nav a {
+      margin: 0 10px;
+      text-decoration: none;
+      color: #007bff;
+      font-weight: bold;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    .panel {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    input, button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📦 관리자 페이지</h1>
+  </header>
+  <nav>
+    <a href="home.html">홈</a>
+    <a href="cart.html">장바구니</a>
+    <a href="index.html">관리자 페이지</a>
+  </nav>
+
+  <div id="login-form" class="panel">
+    <h2>로그인</h2>
+    <input type="text" id="username" placeholder="아이디">
+    <input type="password" id="password" placeholder="비밀번호">
+    <button onclick="login()">로그인</button>
+  </div>
+
+  <div id="signup-form" class="panel">
+    <h2>회원가입</h2>
+    <input type="text" id="signup-id" placeholder="아이디">
+    <input type="password" id="signup-pw" placeholder="비밀번호">
+    <button onclick="signup()">회원가입</button>
+  </div>
+
+  <div id="admin-panel" class="panel hidden">
+    <h2>상품 추가</h2>
+    <input type="text" id="product-name" placeholder="상품 이름">
+    <input type="number" id="product-price" placeholder="가격">
+    <input type="text" id="product-image" placeholder="이미지 URL">
+    <button onclick="addProduct()">상품 추가</button>
+    <button onclick="resetData()" style="background-color: #dc3545;">전체 데이터 초기화</button>
+    <button onclick="logout()">로그아웃</button>
+  </div>
+
+  <div id="user-panel" class="panel hidden">
+    <h2>일반 사용자</h2>
+    <p>로그인되었습니다. 관리자만 상품을 추가할 수 있습니다.</p>
+    <button onclick="logout()">로그아웃</button>
+  </div>
+
+  <script>
+    function login() {
+      const id = document.getElementById('username').value;
+      const pw = document.getElementById('password').value;
+      const users = JSON.parse(localStorage.getItem('users')) || [];
+      const user = users.find(u => u.id === id && u.pw === pw);
+      if (user) {
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        alert("로그인 성공!");
+        location.reload();
+      } else {
+        alert("로그인 실패: 아이디 또는 비밀번호가 틀렸습니다.");
+      }
+    }
+
+    function signup() {
+      const id = document.getElementById('signup-id').value;
+      const pw = document.getElementById('signup-pw').value;
+      const users = JSON.parse(localStorage.getItem('users')) || [];
+      if (users.some(u => u.id === id)) {
+        alert('이미 존재하는 아이디입니다.');
+        return;
+      }
+      const newUser = { id, pw, role: (id === 'hojun' && pw === 'hojun') ? 'admin' : 'user' };
+      users.push(newUser);
+      localStorage.setItem('users', JSON.stringify(users));
+      alert('회원가입이 완료되었습니다.');
+    }
+
+    function logout() {
+      localStorage.removeItem('currentUser');
+      location.reload();
+    }
+
+    function addProduct() {
+      const name = document.getElementById('product-name').value;
+      const price = document.getElementById('product-price').value;
+      const image = document.getElementById('product-image').value;
+      if (!name || !price || !image) {
+        alert('모든 정보를 입력해주세요.');
+        return;
+      }
+      const product = { name, price, image };
+      const products = JSON.parse(localStorage.getItem('products')) || [];
+      products.push(product);
+      localStorage.setItem('products', JSON.stringify(products));
+      alert('상품이 추가되었습니다.');
+    }
+
+    function resetData() {
+      if (confirm('정말 모든 데이터를 초기화하시겠습니까?')) {
+        localStorage.removeItem('products');
+        localStorage.removeItem('cart');
+        localStorage.setItem('balance', 100000);
+        alert('데이터가 초기화되었습니다.');
+        location.reload();
+      }
+    }
+
+    window.onload = function () {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+      if (currentUser) {
+        document.getElementById('login-form').classList.add('hidden');
+        document.getElementById('signup-form').classList.add('hidden');
+        if (currentUser.role === 'admin') {
+          document.getElementById('admin-panel').classList.remove('hidden');
+        } else {
+          document.getElementById('user-panel').classList.remove('hidden');
+        }
+      }
+    }
+  </script>
+</body>
+</html>
